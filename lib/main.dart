@@ -7,7 +7,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final wordPair = WordPair.random();
+    // final wordPair = WordPair.random();
     return MaterialApp(
         // title: 'Flutter Demo',
         // theme: ThemeData(
@@ -33,26 +33,23 @@ class MyApp extends StatelessWidget {
                 style: TextStyle(color: Colors.black),
               ),
             ),
-            body:  
-            // new Container(
-            //   decoration: new BoxDecoration(color: Colors.black),
-            //   child: Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceAround,
-            //   textDirection: TextDirection.rtl,
-            //   children: [new Container(child: Text("Hello1"), color: Colors.white,), Text("Hello2"), Text("Hello3")],
-            // ))
-            new Container(
+            body:
+                // new Container(
+                //   decoration: new BoxDecoration(color: Colors.black),
+                //   child: Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+                //   textDirection: TextDirection.rtl,
+                //   children: [new Container(child: Text("Hello1"), color: Colors.white,), Text("Hello2"), Text("Hello3")],
+                // ))
+                new Container(
               decoration: new BoxDecoration(color: Colors.red),
               child: new Center(
-              //  child: new Text(wordPair.asCamelCase,style: TextStyle(color: Colors.white),),
-              child: RandomWords(),
-
-             ),)
-            
-            ));
+                //  child: new Text(wordPair.asCamelCase,style: TextStyle(color: Colors.white),),
+                child: RandomWords(),
+              ),
+            )));
   }
 }
-
 
 class RandomWords extends StatefulWidget {
   @override
@@ -61,40 +58,112 @@ class RandomWords extends StatefulWidget {
 
 class RandomWordsState extends State<RandomWords> {
   final _suggestions = <WordPair>[];
-  final _biggerFont = const TextStyle(fontSize: 18.0);
+  final _biggerFont = const TextStyle(fontSize: 18.0, color: Colors.white);
+  final _saved = new Set<WordPair>();
   Widget _buildSuggestions() {
-  return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemBuilder: /*1*/ (context, i) {
-        if (i.isOdd) return Divider(); /*2*/
+    return ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemBuilder: /*1*/ (context, i) {
+          if (i.isOdd) return Divider(); /*2*/
 
-        final index = i ~/ 2; /*3*/
-        if (index >= _suggestions.length) {
-          _suggestions.addAll(generateWordPairs().take(10)); /*4*/
-        }
-        return _buildRow(_suggestions[index]);
-      });
-}
-Widget _buildRow(WordPair pair) {
-  return ListTile(
-    title: Text(
-      pair.asPascalCase,
-      style: _biggerFont,
-    ),
-  );
-}
+          final index = i ~/ 2; /*3*/
+          if (index >= _suggestions.length) {
+            _suggestions.addAll(generateWordPairs().take(10)); /*4*/
+          }
+          return _buildRow(_suggestions[index]);
+        });
+  }
+
+  Widget _buildRow(WordPair pair) {
+    final isAlreadySaved = _saved.contains(pair);
+    return ListTile(
+      title: new Container(
+        // decoration: new BoxDecoration(color: Colors.red),
+        child: Text(
+          pair.asPascalCase,
+          style: _biggerFont,
+        ),
+      ),
+      trailing:
+          //   Ink(
+          //   decoration: BoxDecoration(
+          //     border: Border.all(color: Colors.indigoAccent, width: 4.0),
+          //     color: Colors.indigo[900],
+          //     shape: BoxShape.circle,
+          //   ),
+          //   child: InkWell(
+          //     //This keeps the splash effect within the circle
+          //     borderRadius: BorderRadius.circular(1000.0), //Something large to ensure a circle
+          //     child: Padding(
+          //       padding:EdgeInsets.all(20.0),
+          //       child: Icon(
+          //         Icons.message,
+          //         size: 30.0,
+          //         color: Colors.white,
+          //       ),
+          //     ),
+          //   ),
+          // )
+          Icon(
+        isAlreadySaved ? Icons.favorite : Icons.favorite_border,
+        color: isAlreadySaved ? Colors.red : Colors.white,
+      ),
+      onTap: () {
+        setState(() {
+          if (isAlreadySaved) {
+            _saved.remove(pair);
+          } else {
+            _saved.add(pair);
+          }
+        });
+      },
+    );
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-    appBar: AppBar(
-      title: Text('Startup Name Generator'),
-    ),
-    body: _buildSuggestions(),
-  );
-    // final wordPair = WordPair.random();
-    // return Text(wordPair.asPascalCase);
+        appBar: AppBar(
+          title: Text('Startup Name Generator'),
+          backgroundColor: Colors.red,
+          actions: <Widget>[
+            // Add 3 lines from here...
+            IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+          ],
+        ),
+        body: new Container(
+          child: _buildSuggestions(),
+          decoration: new BoxDecoration(color: Colors.black),
+        ));
+  }
+
+  void _pushSaved() {
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (BuildContext context) {
+      final Iterable<ListTile> tiles = _saved.map((WordPair pair) {
+        return ListTile(
+            title: Text(
+          pair.asPascalCase,
+          style: _biggerFont,
+        ));
+      });
+
+      final List<Widget> divided =
+          ListTile.divideTiles(tiles: tiles, context: context, color: Colors.black).toList();
+
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Selected suggestions"),
+          backgroundColor: Colors.red,
+        ),
+        body: 
+        new Container(
+          child: ListView(children: divided),
+          decoration: new BoxDecoration(color: Colors.black),
+        )
+      );
+    }));
   }
 }
-
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
